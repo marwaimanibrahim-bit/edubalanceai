@@ -104,7 +104,10 @@ if prompt := st.sidebar.chat_input("Ask your assistant..."):
                         {"role": "system", "content": SYSTEM_INSTRUCTION},
                         *st.session_state.messages,
                     ],
-                    model="gemini-2.5-flash",
+                  response = client.models.generate_content(
+    model="gemini-2.0-flash",  # نام دقیق و معتبر مدل
+    contents=prompt,
+
                 )
 
                 ai_response = response.choices[0].message.content

@@ -68,7 +68,7 @@ st.sidebar.caption("Your dedicated multilingual companion")
 st.sidebar.divider()
 
 # تنظیم کلید API معتبر گروک
-API_KEY = "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"
+API_KEY = "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"
 
 SYSTEM_INSTRUCTION = """
 You are EduBalance AI, an intelligent companion and agent created by Marwa Eman Ibrahim for students.
@@ -104,7 +104,7 @@ if prompt := st.sidebar.chat_input("Ask your assistant..."):
                         {"role": "system", "content": SYSTEM_INSTRUCTION},
                         *st.session_state.messages,
                     ],
-                    model="openai/gpt-oss-120b",
+                    model="llama-3.3-70b-versatile",
                 )
 
                 ai_response = response.choices[0].message.content

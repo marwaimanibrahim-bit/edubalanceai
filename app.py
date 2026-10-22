@@ -1,10 +1,10 @@
- import streamlit as st
+import streamlit as st
 import plotly.express as px
 import time
 from google import genai
 
 # ==========================================
-# 1. PAGE CONFIGURATION (فقط یک بار در کل برنامه)
+# 1. PAGE CONFIGURATION
 # ==========================================
 st.set_page_config(
     page_title="EduBalance AI | Dubai Edition",
@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. Custom Modern Styling (Dark Mode & Colorful UI)
+# 2. Custom Modern Styling
 st.markdown("""
     <style>
     .main { background-color: #0e1117; }
@@ -50,10 +50,9 @@ if not st.session_state.authenticated:
     st.stop()
 
 # ==========================================
-# 🚀 MAIN APPLICATION (AFTER SUCCESSFUL LOGIN)
+# 🚀 MAIN APPLICATION
 # ==========================================
 
-# Application Header
 st.title("⚖️ EduBalance AI — Autonomous Academic & Wellness Companion")
 st.markdown("### 👩‍💻 **Developed & Created by: Marwa Eman Ibrahim**")
 st.caption("🚀 Designed for Dubai AI Competitions | Advanced Multi-Feature AI Agent with Pomodoro Timer")
@@ -61,7 +60,7 @@ st.caption("🚀 Designed for Dubai AI Competitions | Advanced Multi-Feature AI 
 st.markdown("---")
 
 # ==========================================
-# 💬 1. CHATBOT ASSISTANT (GEMINI DRIVEN)
+# 💬 CHATBOT ASSISTANT (GEMINI DRIVEN)
 # ==========================================
 st.sidebar.header("💬 EduBalance AI Assistant")
 st.sidebar.caption("Your dedicated multilingual companion")
@@ -80,12 +79,10 @@ Rules:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# نمایش پیام‌های قبلی در منوی کناری
 for message in st.session_state.messages:
     with st.sidebar.chat_message(message["role"]):
         st.sidebar.markdown(message["content"])
 
-# کادر دریافت پیام جدید در منوی کناری
 if prompt := st.sidebar.chat_input("Ask your assistant..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.sidebar.chat_message("user"):
@@ -94,31 +91,28 @@ if prompt := st.sidebar.chat_input("Ask your assistant..."):
     with st.sidebar.chat_message("assistant"):
         with st.spinner("Processing..."):
             try:
-                # مقداردهی کلاینت Gemini با استفاده از Secrets
+                # اتصال به Gemini با کلید API از Secrets
                 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-                # ساخت پرامپت شامل تاریخچه گفتگو و دستورالعمل سیستم
                 full_prompt = f"{SYSTEM_INSTRUCTION}\n\n"
                 for msg in st.session_state.messages:
                     role_prefix = "User" if msg["role"] == "user" else "Assistant"
                     full_prompt += f"{role_prefix}: {msg['content']}\n"
 
                 response = client.models.generate_content(
-                    model="gemini-2.0-flash",  # مدل معتبر و سریع گوگل
+                    model="gemini-2.0-flash",
                     contents=full_prompt,
                 )
                 
                 ai_response = response.text
                 st.sidebar.markdown(ai_response)
-
-                # ذخیره پاسخ هوش مصنوعی در حافظه
                 st.session_state.messages.append({"role": "assistant", "content": ai_response})
 
             except Exception as e:
                 st.sidebar.error(f"Error connecting to AI: {e}")
 
 # ==========================================
-# 👤 STUDENT PROFILE & TRACKER (SIDEBAR)
+# 👤 STUDENT PROFILE & TRACKER
 # ==========================================
 st.sidebar.divider()
 st.sidebar.header("👤 Student Profile")
@@ -150,14 +144,11 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Weekly AI Insights"
 ])
 
-# ================= TAB 1: DASHBOARD =================
 with tab1:
     col1, col2 = st.columns([6, 4])
-    
     with col1:
         st.subheader("📅 Optimized Daily Schedule")
         st.write(f"Hello **{student_name}**, here is your autonomous adaptive schedule:")
-        
         if any(x in str(stress_level) for x in ["High", "Burnout", "عالي", "خطر"]):
             st.warning("⚠️ High stress detected! Extra recovery blocks added by AI Agent.")
             schedule = {
@@ -196,35 +187,29 @@ with tab1:
         if water_cups < 5:
             st.warning("💧 Hydration Alert: Drink another glass of water.")
 
-# ================= TAB 2: TASK MANAGER =================
 with tab2:
     st.subheader("✅ Smart Academic Task Manager")
     t1 = st.checkbox("📖 Review University Course Materials", key="t1")
     t2 = st.checkbox("💻 Complete Python Coding Project", key="t2")
     t3 = st.checkbox("🏃 30-Minute Light Exercise / Walk", key="t3")
     t4 = st.checkbox("💧 Complete Daily Hydration Goal", key="t4")
-    
     if t1 and t2 and t3 and t4:
         st.balloons()
         st.success("🎉 Outstanding achievement! All daily milestones successfully completed.")
 
-# ================= TAB 3: STRESS ASSESSMENT =================
 with tab3:
     st.subheader("🧠 Real-time Biometric & Stress Assessment")
     q1 = st.radio("How exhausted do you feel right now?", ["Not at all", "Moderately", "Extremely"], key="q1")
     q2 = st.radio("Are you finding it hard to focus on your studies?", ["No", "A little bit", "Yes, very hard"], key="q2")
-    
     if st.button("Analyze Mental State", key="btn_stress"):
         if q1 == "Extremely" or q2 == "Yes, very hard":
             st.error("🚨 Result: High cognitive fatigue detected. EduBalance AI recommends a 15-minute walk.")
         else:
             st.success("✨ Result: Optimal cognitive state! Your focus metrics look great.")
 
-# ================= TAB 4: FOCUS POMODORO TIMER =================
 with tab4:
     st.subheader("⏱️ Autonomous Focus Pomodoro Timer")
     st.write("Boost your productivity using science-backed 25-minute deep work intervals:")
-    
     col_p1, col_p2 = st.columns(2)
     with col_p1:
         work_mins = st.slider("Select Focus Duration (Minutes)", 5, 60, 25, key="p_work_mins")
@@ -235,20 +220,16 @@ with tab4:
         st.info(f"Focus session started for {work_mins} minutes. Stay tuned and avoid distractions!")
         latest_iteration = st.empty()
         bar = st.progress(0)
-        
         for i in range(100):
             bar.progress(i + 1)
             latest_iteration.text(f"Focus in progress... Progress: {i + 1}%")
             time.sleep(0.02)
-            
         st.balloons()
         st.success(f"🎉 Great job! Focus session completed. Now take a {break_mins}-minute break and drink water.")
 
-# ================= TAB 5: BURNOUT PREDICTOR =================
 with tab5:
     st.subheader("📈 AI Predictive Analytics: Burnout Risk Index")
     st.write("Our machine learning algorithm analyzes your study load, sleep patterns, and stress to predict fatigue risks:")
-    
     risk_score = (study_hours * 5) + ((7 - sleep_hours) * 8)
     if "High" in str(stress_level) or "Burnout" in str(stress_level):
         risk_score += 30
@@ -263,14 +244,11 @@ with tab5:
         else:
             st.success("✨ **Optimal Status:** Your academic pace is healthy and sustainable. Keep it up!")
 
-# ================= TAB 6: WEEKLY AI INSIGHTS =================
 with tab6:
     st.subheader("📊 Weekly AI Performance & Balance Insights")
     st.write("Review your progress trends and work-life balance over the past week:")
-    
     days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     productivity = [85, 90, 75, 95, 60, 80, 88]
-    
     fig_weekly = px.bar(
         x=days, y=productivity, 
         labels={"x": "Day of the Week", "y": "Productivity Score (%)"},
@@ -280,5 +258,4 @@ with tab6:
     )
     fig_weekly.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig_weekly, use_container_width=True)
-    
     st.info("💡 **AI Recommendation:** Your productivity peaks mid-week. Consider scheduling difficult programming tasks on Tuesday and Thursday.")

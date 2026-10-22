@@ -1,7 +1,7 @@
-import streamlit as st
+ import streamlit as st
 import plotly.express as px
 import time
-from groq import Groq
+from google import genai
 
 # ==========================================
 # 1. PAGE CONFIGURATION (فقط یک بار در کل برنامه)
@@ -61,14 +61,11 @@ st.caption("🚀 Designed for Dubai AI Competitions | Advanced Multi-Feature AI 
 st.markdown("---")
 
 # ==========================================
-# 💬 1. CHATBOT ASSISTANT (GROQ & LLAMA DRIVEN)
+# 💬 1. CHATBOT ASSISTANT (GEMINI DRIVEN)
 # ==========================================
 st.sidebar.header("💬 EduBalance AI Assistant")
 st.sidebar.caption("Your dedicated multilingual companion")
 st.sidebar.divider()
-
-# تنظیم کلید API معتبر گروک
-API_KEY = "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"
 
 SYSTEM_INSTRUCTION = """
 You are EduBalance AI, an intelligent companion and agent created by Marwa Eman Ibrahim for students.
@@ -97,20 +94,21 @@ if prompt := st.sidebar.chat_input("Ask your assistant..."):
     with st.sidebar.chat_message("assistant"):
         with st.spinner("Processing..."):
             try:
-                client = Groq(api_key=API_KEY)
+                # مقداردهی کلاینت Gemini با استفاده از Secrets
+                client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-                response = client.chat.completions.create(
-                    messages=[
-                        {"role": "system", "content": SYSTEM_INSTRUCTION},
-                        *st.session_state.messages,
-                    ],
-                  response = client.models.generate_content(
-    model="gemini-2.0-flash",  # نام دقیق و معتبر مدل
-    contents=prompt,
+                # ساخت پرامپت شامل تاریخچه گفتگو و دستورالعمل سیستم
+                full_prompt = f"{SYSTEM_INSTRUCTION}\n\n"
+                for msg in st.session_state.messages:
+                    role_prefix = "User" if msg["role"] == "user" else "Assistant"
+                    full_prompt += f"{role_prefix}: {msg['content']}\n"
 
+                response = client.models.generate_content(
+                    model="gemini-2.0-flash",  # مدل معتبر و سریع گوگل
+                    contents=full_prompt,
                 )
-
-                ai_response = response.choices[0].message.content
+                
+                ai_response = response.text
                 st.sidebar.markdown(ai_response)
 
                 # ذخیره پاسخ هوش مصنوعی در حافظه

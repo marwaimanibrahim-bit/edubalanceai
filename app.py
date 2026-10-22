@@ -68,7 +68,9 @@ st.sidebar.caption("Your dedicated multilingual companion")
 st.sidebar.divider()
 
 # تنظیم کلید API معتبر گروک
-API_KEY = "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"
+# تنظیم کلید API معتبر گروک
+# کلید API جدید گروک
+API_KEY = "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"
 
 SYSTEM_INSTRUCTION = """
 You are EduBalance AI, an intelligent companion and agent created by Marwa Eman Ibrahim for students.
@@ -100,12 +102,13 @@ if prompt := st.sidebar.chat_input("Ask your assistant..."):
                 client = Groq(api_key=API_KEY)
 
                 response = client.chat.completions.create(
-                    messages=[
-                        {"role": "system", "content": SYSTEM_INSTRUCTION},
-                        *st.session_state.messages,
-                    ],
-                    model="openai/gpt-oss-120b",
-                )
+    messages=[
+        {"role": "system", "content": SYSTEM_INSTRUCTION},
+        *st.session_state.messages,
+    ],
+    model="llama-3.3-70b-versatile",  # <--- مدل درست و فوق‌العاده سریع Groq
+)
+            
 
                 ai_response = response.choices[0].message.content
                 st.sidebar.markdown(ai_response)

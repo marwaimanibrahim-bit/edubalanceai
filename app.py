@@ -104,7 +104,7 @@ if prompt := st.sidebar.chat_input("Ask your assistant..."):
                         {"role": "system", "content": SYSTEM_INSTRUCTION},
                         *st.session_state.messages,
                     ],
-                    model="llama-3.3-70b-versatile",
+                    model="llama-3.1-8b-instant",
                 )
 
                 ai_response = response.choices[0].message.content

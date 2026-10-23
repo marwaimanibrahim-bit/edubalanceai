@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.express as px
 import time
-from google import genai
+from groq import Groq
 
 # ==========================================
 # 1. PAGE CONFIGURATION
@@ -60,7 +60,7 @@ st.caption("🚀 Designed for Dubai AI Competitions | Advanced Multi-Feature AI 
 st.markdown("---")
 
 # ==========================================
-# 💬 CHATBOT ASSISTANT (GEMINI DRIVEN)
+# 💬 CHATBOT ASSISTANT (GROQ DRIVEN)
 # ==========================================
 st.sidebar.header("💬 EduBalance AI Assistant")
 st.sidebar.caption("Your dedicated multilingual companion")
@@ -91,20 +91,21 @@ if prompt := st.sidebar.chat_input("Ask your assistant..."):
     with st.sidebar.chat_message("assistant"):
         with st.spinner("Processing..."):
             try:
-                # اتصال به Gemini با کلید API از Secrets
-                client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+                # اتصال به Groq با کلید API از Secrets (می‌توانید کلید را با نام GROQ_API_KEY ذخیره کنید)
+                client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-                full_prompt = f"{SYSTEM_INSTRUCTION}\n\n"
+                # آماده‌سازی پیام‌ها برای مدل Groq
+                messages_payload = [{"role": "system", "content": SYSTEM_INSTRUCTION}]
                 for msg in st.session_state.messages:
-                    role_prefix = "User" if msg["role"] == "user" else "Assistant"
-                    full_prompt += f"{role_prefix}: {msg['content']}\n"
+                    messages_payload.append({"role": msg["role"], "content": msg["content"]})
 
-                response = client.models.generate_content(
-                    model="gemini-2.0-flash",
-                    contents=full_prompt,
+                chat_completion = client.chat.completions.create(
+                    messages=messages_payload,
+                    model="llama-3.3-70b-versatile",
+                    temperature=0.7,
                 )
                 
-                ai_response = response.text
+                ai_response = chat_completion.choices[0].message.content
                 st.sidebar.markdown(ai_response)
                 st.session_state.messages.append({"role": "assistant", "content": ai_response})
 

@@ -101,7 +101,7 @@ if prompt := st.sidebar.chat_input("Ask your assistant..."):
 
                 chat_completion = client.chat.completions.create(
                     messages=messages_payload,
-                    model="gemma2-9b-it",
+                    model="openai/gpt-oss-120b",
                     temperature=0.7,
                 )
                 

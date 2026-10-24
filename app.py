@@ -101,7 +101,7 @@ if prompt := st.sidebar.chat_input("Ask your assistant..."):
 
                 chat_completion = client.chat.completions.create(
                     messages=messages_payload,
-                    model="llama-3.1-8b-instant",
+                    model="llama3-8b-8192",
                     temperature=0.7,
                 )
                 

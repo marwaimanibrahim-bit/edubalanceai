@@ -35,51 +35,49 @@ if "messages" not in st.session_state:
 if "mood_logs" not in st.session_state:
     st.session_state.mood_logs = []
 
-# 4. Sidebar Controls
+# 4. Sidebar Controls & Navigation (With Full Creator Name)
 with st.sidebar:
-    st.title("👤 Student Profile")
-    student_name = st.text_input("Student Name / اسم / الاسم", "Marwa")
+    st.title("🎓 EduBalance AI")
+    st.markdown("✨ *Created by **Marwa Eman Ibrahim***") # نام کامل سازنده
+    st.caption("Your academic & wellness companion")
+    
+    st.markdown("---")
+    st.subheader("👤 Student Profile")
+    student_name = st.text_input("Student Name / اسم", "Marwa Eman Ibrahim")
+    
+    st.markdown("---")
+    st.header("📌 Navigation Menu")
+    app_mode = st.radio(
+        "Choose a feature:",
+        ["💬 AI Companion Chat", "📊 Mood Analytics", "📅 Exam Planner"]
+    )
     
     st.markdown("---")
     st.header("🧰 Quick Calm Toolkit")
-    st.caption("Need quick relief or motivation?")
-    
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        if st.button("🫁 4-7-8 Breathing"):
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": (
-                    "**🫁 4-7-8 Breathing Exercise:**\n"
-                    "1. **Inhale** quietly through your nose for **4 seconds**.\n"
-                    "2. **Hold** your breath for **7 seconds**.\n"
-                    "3. **Exhale** completely through your mouth for **8 seconds**.\n"
-                    "4. Repeat this 3-4 times to calm your nervous system!"
-                )
-            })
+    if st.button("🫁 4-7-8 Breathing Exercise"):
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": (
+                "**🫁 4-7-8 Breathing Exercise:**\n"
+                "1. **Inhale** quietly through your nose for **4 seconds**.\n"
+                "2. **Hold** your breath for **7 seconds**.\n"
+                "3. **Exhale** completely through your mouth for **8 seconds**."
+            )
+        })
 
-    with col_btn2:
-        if st.button("💡 Quick Motivation"):
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": "✨ *\"Success is the sum of small efforts, repeated day in and day out.\"* Keep going, you've got this!"
-            })
-
-# 5. Main Title
-st.title("🎓 EduBalance AI")
-st.caption("Your dedicated multilingual companion for academic performance & mental wellness.")
-
-# 6. Navigation Tabs
-tab_chat, tab_mood, tab_planner = st.tabs([
-    "💬 AI Companion Chat", 
-    "📊 Mood Analytics", 
-    "📅 Exam Planner"
-])
+    if st.button("💡 Quick Motivation"):
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": "✨ *\"Success is the sum of small efforts, repeated day in and day out.\"* Keep going, you've got this!"
+        })
 
 # ==========================================
-# TAB 1: AI Chat Companion
+# PAGE 1: AI Chat Companion
 # ==========================================
-with tab_chat:
+if app_mode == "💬 AI Companion Chat":
+    st.title("💬 AI Companion Chat")
+    st.caption("Ask questions about your studies, stress relief, or time management.")
+
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -91,7 +89,6 @@ with tab_chat:
 
         with st.chat_message("assistant"):
             try:
-                # System prompt for empathetic and structured responses
                 system_instruction = (
                     f"You are EduBalance AI, a supportive academic and mental health assistant for students. "
                     f"The user's name is {student_name}. Keep responses encouraging, well-structured, and clear. "
@@ -116,10 +113,10 @@ with tab_chat:
                 st.error(f"Error connecting to AI: {e}")
 
 # ==========================================
-# TAB 2: Mood & Stress Analytics
+# PAGE 2: Mood & Stress Analytics
 # ==========================================
-with tab_mood:
-    st.subheader("📈 Daily Mood & Stress Tracker")
+elif app_mode == "📊 Mood Analytics":
+    st.title("📊 Daily Mood & Stress Tracker")
     st.write("Track your energy and stress levels to visualize your well-being over time.")
     
     with st.form("mood_form"):
@@ -156,10 +153,11 @@ with tab_mood:
         st.info("No mood records yet. Log your first check-in above!")
 
 # ==========================================
-# TAB 3: Smart Exam Scheduler
+# PAGE 3: Smart Exam Scheduler
 # ==========================================
-with tab_planner:
-    st.subheader("📅 Smart Exam Countdown & Study Planner")
+elif app_mode == "📅 Exam Planner":
+    st.title("📅 Smart Exam Countdown & Study Planner")
+    st.write("Plan your exams efficiently with AI-generated schedules.")
     
     col_a, col_b = st.columns(2)
     with col_a:

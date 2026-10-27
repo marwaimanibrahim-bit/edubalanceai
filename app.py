@@ -6,7 +6,7 @@ from groq import Groq
 import io
 
 try:
-    import pypdf
+    import pypdf # type: ignore
 except ImportError:
     pypdf = None
 
@@ -45,7 +45,7 @@ if "mood_logs" not in st.session_state:
 with st.sidebar:
     st.title("🎓 EduBalance AI")
     st.markdown("✨ *Created by **Marwa Eman Ibrahim***")
-    st.caption("ampionship Edition - Advanced AI Agent")
+    st.caption("Championship Edition - Advanced AI Agent")
     
     st.markdown("---")
     st.subheader("👤 Student Profile")
@@ -60,10 +60,25 @@ with st.sidebar:
             "📊 Mood Analytics", 
             "📅 Exam Planner & Export", 
             "📄 Document Analyzer (RAG)", 
-            "📝 Smart Quiz Generator"
+            "📝 Smart Quiz Generator",
+            "⏱️ Pomodoro Focus Timer"
         ]
     )
     
+    st.markdown("---")
+    st.subheader("⚙️ Chat Management")
+    if st.button("🗑️ Clear Chat History"):
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": (
+                    "Hello! 👋 Welcome back to **EduBalance AI**.\n\n"
+                    "Chat history has been cleared. How can I help you today?"
+                )
+            }
+        ]
+        st.rerun()
+
     st.markdown("---")
     st.header("🧰 Quick Calm Toolkit")
     if st.button("🫁 4-7-8 Breathing Exercise"):
@@ -208,7 +223,6 @@ elif app_mode == "📅 Exam Planner & Export":
         st.markdown("### 📋 Your AI Study Plan:")
         st.markdown(st.session_state.study_plan_text)
         
-        # Export feature
         st.download_button(
             label="📥 Download Study Plan as Text File",
             data=st.session_state.study_plan_text,
@@ -284,3 +298,24 @@ elif app_mode == "📝 Smart Quiz Generator":
                 st.markdown(quiz_resp.choices[0].message.content)
             except Exception as e:
                 st.error(f"Could not generate quiz: {e}")
+
+# ==========================================
+# PAGE 6: Pomodoro Focus Timer
+# ==========================================
+elif app_mode == "⏱️ Pomodoro Focus Timer":
+    st.title("⏱️ Pomodoro Focus & Productivity Timer")
+    st.write("Master your study sessions using the proven Pomodoro technique.")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info("🍅 **Focus Session (25 Minutes)**\n\nEliminate all distractions, silence your phone, and focus entirely on your coursework.")
+    with col2:
+        st.success("☕ **Short Break (5 Minutes)**\n\nStand up, stretch, drink water, and rest your eyes before the next study sprint.")
+        
+    st.markdown("---")
+    st.subheader("💡 Focus & Time Management Tips")
+    st.markdown(
+        "- **Set Clear Goals:** Know exactly what you want to achieve in each 25-minute block.\n"
+        "- **Avoid Multitasking:** Focus on one single task at a time for maximum retention.\n"
+        "- **Stay Hydrated:** Keep a glass of water nearby while studying."
+    )

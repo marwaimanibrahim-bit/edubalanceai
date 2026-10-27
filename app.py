@@ -3,6 +3,12 @@ import plotly.express as px
 import pandas as pd
 from datetime import datetime, date
 from groq import Groq
+import io
+
+try:
+    import pypdf
+except ImportError:
+    pypdf = None
 
 # 1. Page Configuration
 st.set_page_config(
@@ -26,7 +32,7 @@ if "messages" not in st.session_state:
             "role": "assistant",
             "content": (
                 "Hello! 👋 Welcome to **EduBalance AI**.\n\n"
-                "I'm here to help you keep a healthy balance between academic success and mental well-being.\n\n"
+                "I'm your advanced AI academic and wellness companion, created to help you excel.\n\n"
                 "How can I assist you today?"
             )
         }
@@ -35,21 +41,27 @@ if "messages" not in st.session_state:
 if "mood_logs" not in st.session_state:
     st.session_state.mood_logs = []
 
-# 4. Sidebar Controls & Navigation (With Full Creator Name)
+# 4. Sidebar Controls & Navigation
 with st.sidebar:
     st.title("🎓 EduBalance AI")
-    st.markdown("✨ *Created by **Marwa Eman Ibrahim***") # نام کامل سازنده
-    st.caption("Your academic & wellness companion")
+    st.markdown("✨ *Created by **Marwa Eman Ibrahim***")
+    st.caption("ampionship Edition - Advanced AI Agent")
     
     st.markdown("---")
     st.subheader("👤 Student Profile")
-    student_name = st.text_input("Student Name / اسم", "Marwa Eman Ibrahim")
+    student_name = st.text_input("Student Name", "Marwa Eman Ibrahim")
     
     st.markdown("---")
     st.header("📌 Navigation Menu")
     app_mode = st.radio(
         "Choose a feature:",
-        ["💬 AI Companion Chat", "📊 Mood Analytics", "📅 Exam Planner"]
+        [
+            "💬 AI Companion Chat", 
+            "📊 Mood Analytics", 
+            "📅 Exam Planner & Export", 
+            "📄 Document Analyzer (RAG)", 
+            "📝 Smart Quiz Generator"
+        ]
     )
     
     st.markdown("---")
@@ -90,8 +102,8 @@ if app_mode == "💬 AI Companion Chat":
         with st.chat_message("assistant"):
             try:
                 system_instruction = (
-                    f"You are EduBalance AI, a supportive academic and mental health assistant for students. "
-                    f"The user's name is {student_name}. Keep responses encouraging, well-structured, and clear. "
+                    f"You are EduBalance AI, an advanced academic and mental health assistant designed for students. "
+                    f"The user's name is {student_name}. Keep responses encouraging, highly structured, and clear. "
                     f"Support multilingual queries (English, Pashto, Dari, Arabic)."
                 )
                 
@@ -153,17 +165,20 @@ elif app_mode == "📊 Mood Analytics":
         st.info("No mood records yet. Log your first check-in above!")
 
 # ==========================================
-# PAGE 3: Smart Exam Scheduler
+# PAGE 3: Exam Planner & Export
 # ==========================================
-elif app_mode == "📅 Exam Planner":
+elif app_mode == "📅 Exam Planner & Export":
     st.title("📅 Smart Exam Countdown & Study Planner")
-    st.write("Plan your exams efficiently with AI-generated schedules.")
+    st.write("Plan your exams efficiently with AI-generated schedules and export options.")
     
     col_a, col_b = st.columns(2)
     with col_a:
         exam_name = st.text_input("Exam / Subject Name", "Computer Science")
     with col_b:
         exam_date = st.date_input("Exam Date", date.today())
+
+    if "study_plan_text" not in st.session_state:
+        st.session_state.study_plan_text = ""
 
     if st.button("Generate Study Schedule"):
         days_left = (exam_date - date.today()).days
@@ -175,7 +190,7 @@ elif app_mode == "📅 Exam Planner":
             
             with st.spinner("AI is generating a personalized study schedule..."):
                 prompt = (
-                    f"Create a day-by-day study and break schedule for the subject '{exam_name}'. "
+                    f"Create a professional day-by-day study and break schedule for the subject '{exam_name}'. "
                     f"There are {days_left} days left until the exam. "
                     f"Include study techniques like Pomodoro, revision strategies, and stress-prevention tips."
                 )
@@ -185,7 +200,87 @@ elif app_mode == "📅 Exam Planner":
                         messages=[{"role": "user", "content": prompt}],
                         temperature=0.7,
                     )
-                    st.markdown("### 📋 Your AI Study Plan:")
-                    st.markdown(plan_resp.choices[0].message.content)
+                    st.session_state.study_plan_text = plan_resp.choices[0].message.content
                 except Exception as e:
                     st.error(f"Could not generate schedule: {e}")
+
+    if st.session_state.study_plan_text:
+        st.markdown("### 📋 Your AI Study Plan:")
+        st.markdown(st.session_state.study_plan_text)
+        
+        # Export feature
+        st.download_button(
+            label="📥 Download Study Plan as Text File",
+            data=st.session_state.study_plan_text,
+            file_name=f"{exam_name}_Study_Plan.txt",
+            mime="text/plain"
+        )
+
+# ==========================================
+# PAGE 4: Document Analyzer (RAG Feature)
+# ==========================================
+elif app_mode == "📄 Document Analyzer (RAG)":
+    st.title("📄 Document & Study Material Analyzer")
+    st.write("Upload your lecture notes (PDF or TXT) and let AI analyze them for you.")
+    
+    uploaded_file = st.file_uploader("Upload a study document", type=["pdf", "txt"])
+    
+    extracted_text = ""
+    if uploaded_file is not None:
+        if uploaded_file.type == "application/pdf" and pypdf is not None:
+            reader = pypdf.PdfReader(uploaded_file)
+            for page in reader.pages:
+                extracted_text += page.extract_text() or ""
+        elif uploaded_file.type == "text/plain":
+            extracted_text = str(uploaded_file.read(), "utf-8")
+        
+        st.success(f"File uploaded successfully! ({len(extracted_text)} characters extracted)")
+        
+        doc_query = st.text_input("Ask a question about this document:")
+        if st.button("Analyze Document"):
+            if not doc_query:
+                st.warning("Please enter a question.")
+            else:
+                with st.spinner("Analyzing document content..."):
+                    prompt = (
+                        f"Based on the following document content, answer the user's question clearly and professionally.\n\n"
+                        f"Document Content:\n{extracted_text[:4000]}\n\n"
+                        f"Question: {doc_query}"
+                    )
+                    try:
+                        doc_resp = client.chat.completions.create(
+                            model="openai/gpt-oss-120b",
+                            messages=[{"role": "user", "content": prompt}],
+                            temperature=0.7,
+                        )
+                        st.markdown("### 🤖 Analysis Result:")
+                        st.markdown(doc_resp.choices[0].message.content)
+                    except Exception as e:
+                        st.error(f"Error analyzing document: {e}")
+
+# ==========================================
+# PAGE 5: Smart Quiz Generator
+# ==========================================
+elif app_mode == "📝 Smart Quiz Generator":
+    st.title("📝 Smart Quiz & Flashcard Generator")
+    st.write("Generate custom practice quizzes instantly to test your knowledge.")
+    
+    quiz_topic = st.text_input("Enter subject or topic for the quiz", "Health Science & Nutrition")
+    num_questions = st.slider("Number of Questions", 3, 10, 5)
+    
+    if st.button("Generate Quiz"):
+        with st.spinner("Generating quiz questions..."):
+            quiz_prompt = (
+                f"Create {num_questions} multiple-choice quiz questions with answers and explanations "
+                f"for the topic: '{quiz_topic}'. Format them clearly."
+            )
+            try:
+                quiz_resp = client.chat.completions.create(
+                    model="openai/gpt-oss-120b",
+                    messages=[{"role": "user", "content": quiz_prompt}],
+                    temperature=0.7,
+                )
+                st.markdown("### 🧠 Your Custom Practice Quiz:")
+                st.markdown(quiz_resp.choices[0].message.content)
+            except Exception as e:
+                st.error(f"Could not generate quiz: {e}")
